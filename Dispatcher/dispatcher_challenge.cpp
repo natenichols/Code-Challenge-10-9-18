@@ -104,7 +104,8 @@ public:
     {
         cout << "COMMAND: " << command_json << endl;
 
-        //impliment
+        Document doc;
+	doc.Parse<0>(command_json.c_str()).HasParseError();
 
         return true;
     }
