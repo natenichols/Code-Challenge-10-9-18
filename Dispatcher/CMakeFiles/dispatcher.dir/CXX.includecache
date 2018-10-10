@@ -1,0 +1,26 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/n545n545/Code-Challenge-10-9-18/Dispatcher/dispatcher_challenge.cpp
+iostream
+-
+map
+-
+string
+-
+iostream
+-
+functional
+-
+rapidjson/document.h
+/home/n545n545/Code-Challenge-10-9-18/Dispatcher/rapidjson/document.h
+rapidjson/writer.h
+/home/n545n545/Code-Challenge-10-9-18/Dispatcher/rapidjson/writer.h
+rapidjson/stringbuffer.h
+/home/n545n545/Code-Challenge-10-9-18/Dispatcher/rapidjson/stringbuffer.h
+
