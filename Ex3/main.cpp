@@ -17,6 +17,8 @@ void doWork(std::string msg)
 	
 	std::cout << msg << ": has started, is waiting" << std::endl;
 
+	//Loop Somewhere in here	
+
 	//Threads block on condition_signal(2)
 	_cond.wait(lock, []{return ready;});
 
@@ -28,6 +30,8 @@ void doWork(std::string msg)
 	
 	//notify the next thread
 	_cond.notify_one();
+
+	//End Loop somewhere here
 	
 }
 int main()
