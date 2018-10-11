@@ -50,6 +50,10 @@ auto log_command = R"(
  {"command":"logValue","payload": {"data":[1,2,3,4]}}
 )";
 
+auto type_command = R"(
+ {"command":"checkType", "payload": "<put anything here>"}
+)";
+
 class Controller {
 public:
     bool help(rapidjson::Value &payload)
@@ -87,7 +91,7 @@ public:
 	return true;
     }
 
-    //takes an array and outputs it to a csv (i.e. to graph in excel or something)
+    //takes an array and outputs it to a csv (to graph in excel or something)
     bool logValue(rapidjson::Value &payload)
     {
 	cout << "Controller::logValue: command: \n";
@@ -101,6 +105,19 @@ public:
 	outFile.close();
 	
 	cout << "Data has been logged to myData.csv" << endl;
+	
+    }
+
+    //Checks the type of the payload
+    bool checkType(rapidjson::Value &payload)
+    {
+	//The values assosiated with the rapidjson GetType(), which returns int representing the following (i.e. string returns 5)
+	const string kTypeNames[7] = { "Null", "False", "True", "Object", "Array", "String", "Number" };
+
+	cout << "Controller::logValue: command: \n";
+	
+	cout << "Payload is a(n) " << kTypeNames[payload.GetType()] << endl;
+
 	
     }
 
@@ -207,6 +224,9 @@ int main()
     CommandHandler log_handler = std::bind(&Controller::logValue, controller, _1);
     command_dispatcher.addCommandHandler("logValue", log_handler);
 
+    //create and add CommandHandlers for Controller.checkType
+    CommandHandler type_handler = std::bind(&Controller::checkType, controller, _1);
+    command_dispatcher.addCommandHandler("checkType", type_handler);
 
     // gimme ...
     // command line interface
