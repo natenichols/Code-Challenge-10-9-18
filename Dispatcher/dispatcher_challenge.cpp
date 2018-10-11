@@ -85,6 +85,7 @@ public:
     // ctor - need impl
     CommandDispatcher()
     {
+	
     }
 
     // dtor - need impl
@@ -109,15 +110,19 @@ public:
         Document doc;
 	doc.Parse<0>(command_json.c_str()).HasParseError();
 
+	if(doc["command"].GetString() ==string("exit")){
+		bullshit.exit(doc["payload"]);
+	}
 	
 
         return true;
     }
-
 private:
 
     // gimme ...
     std::map<std::string, CommandHandler> command_handlers_;
+	
+    Controller bullshit;//Get rid of this
 
     // another gimme ...
     // Question: why delete these?
