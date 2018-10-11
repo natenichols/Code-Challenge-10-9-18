@@ -40,6 +40,10 @@ auto exit_command = R"(
  {"command":"exit","payload": {"reason":"Exiting program on user request."}}
 )";
 
+auto power_command = R"(
+ {"command":"calcPower","payload": {"voltage": 10, "current": 2}}
+)";
+
 class Controller {
 public:
     bool help(rapidjson::Value &payload)
@@ -60,6 +64,21 @@ public:
 	cout << payload["reason"].GetString() << endl;
 
         return true;
+    }
+
+    //my Commands
+
+    bool calcPower(rapidjson::Value &payload)
+    {
+	cout << "Controller::calcpower: command: \n";
+
+	int voltage = payload["voltage"].GetInt();
+	int current = payload["current"].GetInt();
+
+	cout << "Voltage: " << voltage << "\tCurrent: " << current << endl;
+	cout << "Power computed is: " << current * voltage << endl;
+
+
     }
 
     // implement 3-4 more commands
@@ -90,6 +109,7 @@ public:
     {
         cout << "CommandDispatcher: addCommandHandler: " << command << std::endl;
 
+	//maps a command to a certain controller method (through a commandhandler)
         command_handlers_[command] = handler;	
 
         return true;
@@ -99,17 +119,12 @@ public:
     {
         cout << "COMMAND: " << command_json << endl;
 
+
+	//rapidjson object parses the command
         Document doc;
 	doc.Parse<0>(command_json.c_str()).HasParseError();
-
-	/*this is not permanent
-	if(doc["command"].GetString() ==string("exit")){
-		bullshit.exit(doc["payload"]);
-	}
-	else if(doc["command"].GetString() ==string("help")){
-		bullshit.help(doc["payload"]);
-	}*/
 	
+	//calls the commandhandler associated with the command and passes in the payload
 	command_handlers_[doc["command"].GetString()](doc["payload"]);
 
         return true;
@@ -118,8 +133,6 @@ private:
 
     // gimme ...
     std::map<std::string, CommandHandler> command_handlers_;
-	
-    //Controller bullshit;//Get rid of this
 
     // another gimme ...
     // Question: why delete these?
@@ -139,7 +152,8 @@ int main()
 
     // Implement
     // add command handlers in Controller class to CommandDispatcher using addCommandHandler
-
+ 
+    //placeholder so parameters can be passed in later
     using std::placeholders::_1;
 	
     //create and add Commandhandlers for Controller.exit
@@ -149,6 +163,10 @@ int main()
     //create and add Commandhandlers for Controller.help
     CommandHandler help_handler = std::bind(&Controller::help, controller, _1);
     command_dispatcher.addCommandHandler("help", help_handler);
+
+    //create and add CommandHandlers for Controller.calcpower
+    CommandHandler power_handler = std::bind(&Controller::calcPower, controller, _1);
+    command_dispatcher.addCommandHandler("calcPower", power_handler);
 
     // gimme ...
     // command line interface
