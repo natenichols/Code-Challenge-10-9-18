@@ -56,7 +56,7 @@ public:
     {
         cout << "Controller::help: command: ";
 
-        // implement
+        cout << payload["usage"].GetString() << endl;
 
         return true;
     }
@@ -65,7 +65,9 @@ public:
     {
         cout << "Controller::exit: command: \n";
 
-       // g_done = false;
+        g_done = false;
+
+	cout << payload["reason"].GetString() << endl;
 
         return true;
     }
@@ -95,7 +97,7 @@ public:
     {
         cout << "CommandDispatcher: addCommandHandler: " << command << std::endl;
 
-       // implement		
+        command_handlers_.insert(pair<std::string, CommandHandler> (command,handler));	
 
         return true;
     }
@@ -106,6 +108,8 @@ public:
 
         Document doc;
 	doc.Parse<0>(command_json.c_str()).HasParseError();
+
+	
 
         return true;
     }
@@ -134,6 +138,8 @@ int main()
     // Implement
     // add command handlers in Controller class to CommandDispatcher using addCommandHandler
 
+   // CommandHandler exit_handler{std::ref(controller)};
+    
 
     // gimme ...
     // command line interface
