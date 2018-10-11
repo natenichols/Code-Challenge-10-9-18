@@ -66,8 +66,10 @@ public:
 };
 
 // gimme ... this is actually tricky
-	// Did not include functional library, because std::function takes a function as a type
+	// Note: Had to include functional library, because std::function takes a function as a type
 // Bonus Question: why did I type cast this?
+	//The bool isn't really a type cast its denoting the return type of the function which takes parameters(rapidjson::Value)
+	//This is done because the methods being assigned to the Handler return bool values
 typedef std::function<bool(rapidjson::Value &)> CommandHandler;
 
 class CommandDispatcher {
@@ -88,7 +90,7 @@ public:
     {
         cout << "CommandDispatcher: addCommandHandler: " << command << std::endl;
 
-        command_handlers_.insert(pair<std::string, CommandHandler> (command,handler));	
+        command_handlers_[command] = handler;	
 
         return true;
     }
@@ -100,12 +102,15 @@ public:
         Document doc;
 	doc.Parse<0>(command_json.c_str()).HasParseError();
 
+	/*this is not permanent
 	if(doc["command"].GetString() ==string("exit")){
 		bullshit.exit(doc["payload"]);
 	}
 	else if(doc["command"].GetString() ==string("help")){
 		bullshit.help(doc["payload"]);
-	}
+	}*/
+	
+	command_handlers_[doc["command"].GetString()](doc["payload"]);
 
         return true;
     }
@@ -114,7 +119,7 @@ private:
     // gimme ...
     std::map<std::string, CommandHandler> command_handlers_;
 	
-    Controller bullshit;//Get rid of this
+    //Controller bullshit;//Get rid of this
 
     // another gimme ...
     // Question: why delete these?
@@ -135,8 +140,15 @@ int main()
     // Implement
     // add command handlers in Controller class to CommandDispatcher using addCommandHandler
 
-   // CommandHandler exit_handler{std::ref(controller)};
-    
+    using std::placeholders::_1;
+	
+    //create and add Commandhandlers for Controller.exit
+    CommandHandler exit_handler = std::bind(&Controller::exit, controller, _1);
+    command_dispatcher.addCommandHandler("exit", exit_handler);
+
+    //create and add Commandhandlers for Controller.help
+    CommandHandler help_handler = std::bind(&Controller::help, controller, _1);
+    command_dispatcher.addCommandHandler("help", help_handler);
 
     // gimme ...
     // command line interface
