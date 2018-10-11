@@ -100,6 +100,8 @@ public:
 	}
 	outFile.close();
 	
+	cout << "Data has been logged to myData.csv" << endl;
+	
     }
 
     // implement 2-3 more commands
@@ -124,6 +126,7 @@ public:
     virtual ~CommandDispatcher()
     {
         // question why is it virtual? Is it needed in this case?
+		//No, becuase nothing is inheriting from this Class
     }
 
     bool addCommandHandler(std::string command, CommandHandler handler)
@@ -140,17 +143,25 @@ public:
     {
         cout << "COMMAND: " << command_json << endl;
 
-
 	//rapidjson object parses the command
         Document doc;
-
-	//Throws runtime error if parsing does not work (this only protects when the value is not able to be parsed into a document)
-		//i.e. invalid json docs are still going to cause issues
+	
+	//Throws runtime error if parsing does not work
 	if(doc.Parse<0>(command_json.c_str()).HasParseError())
 		throw(std::runtime_error("INVALID COMMAND"));
+
+	//Throws error if there is no command in the json
+	if(!doc.HasMember("command"))
+		throw(std::runtime_error("ERROR: NO COMMAND IN JSON"));
+
+	std::string command = doc["command"].GetString();
+
+	//Throws error if the json command not in command_handlers_
+	if(command_handlers_.find(command) == command_handlers_.end())
+		throw(std::runtime_error("ERROR: NO COMMANDHANDLER FOR THIS COMMAND"));
 	
 	//calls the commandhandler associated with the command and passes in the payload
-	command_handlers_[doc["command"].GetString()](doc["payload"]);
+	command_handlers_[command](doc["payload"]);
 
         return true;
     }
