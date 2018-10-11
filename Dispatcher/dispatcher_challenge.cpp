@@ -3,6 +3,8 @@
 #include <string>
 #include <iostream>
 #include <functional>
+#include <fstream>
+#include <stdexcept>
 
 //
 // supporting tools and software
@@ -44,6 +46,10 @@ auto power_command = R"(
  {"command":"calcPower","payload": {"voltage": 10, "current": 2}}
 )";
 
+auto log_command = R"(
+ {"command":"logValue","payload": {"data":[1,2,3,4]}}
+)";
+
 class Controller {
 public:
     bool help(rapidjson::Value &payload)
@@ -67,10 +73,10 @@ public:
     }
 
     //my Commands
-
+    //reads voltage and current measurements from terminal and computes power
     bool calcPower(rapidjson::Value &payload)
     {
-	cout << "Controller::calcpower: command: \n";
+	cout << "Controller::calcPower: command: \n";
 
 	int voltage = payload["voltage"].GetInt();
 	int current = payload["current"].GetInt();
@@ -78,10 +84,25 @@ public:
 	cout << "Voltage: " << voltage << "\tCurrent: " << current << endl;
 	cout << "Power computed is: " << current * voltage << endl;
 
-
+	return true;
     }
 
-    // implement 3-4 more commands
+    //takes an array and outputs it to a csv (i.e. to graph in excel or something)
+    bool logValue(rapidjson::Value &payload)
+    {
+	cout << "Controller::logValue: command: \n";
+	
+	ofstream outFile;
+	outFile.open("myData.csv", std::fstream::app);
+
+	for(SizeType i = 0; i < payload["data"].Size(); i++){
+	    outFile << payload["data"][i].GetInt() << endl;
+	}
+	outFile.close();
+	
+    }
+
+    // implement 2-3 more commands
 };
 
 // gimme ... this is actually tricky
@@ -122,7 +143,11 @@ public:
 
 	//rapidjson object parses the command
         Document doc;
-	doc.Parse<0>(command_json.c_str()).HasParseError();
+
+	//Throws runtime error if parsing does not work (this only protects when the value is not able to be parsed into a document)
+		//i.e. invalid json docs are still going to cause issues
+	if(doc.Parse<0>(command_json.c_str()).HasParseError())
+		throw(std::runtime_error("INVALID COMMAND"));
 	
 	//calls the commandhandler associated with the command and passes in the payload
 	command_handlers_[doc["command"].GetString()](doc["payload"]);
@@ -140,7 +165,6 @@ private:
     // delete unused constructors
     CommandDispatcher (const CommandDispatcher&) = delete;
     CommandDispatcher& operator= (const CommandDispatcher&) = delete;
-
 };
 
 int main()
@@ -168,6 +192,11 @@ int main()
     CommandHandler power_handler = std::bind(&Controller::calcPower, controller, _1);
     command_dispatcher.addCommandHandler("calcPower", power_handler);
 
+    //create and add CommandHandlers for Controller.logValue
+    CommandHandler log_handler = std::bind(&Controller::logValue, controller, _1);
+    command_dispatcher.addCommandHandler("logValue", log_handler);
+
+
     // gimme ...
     // command line interface
     string command;
@@ -175,7 +204,12 @@ int main()
         cout << "COMMANDS: {\"command\":\"exit\", \"payload\":{\"reason\":\"User requested exit.\"}}\n";
         cout << "\tenter command : ";
         getline(cin, command);
-        command_dispatcher.dispatchCommand(command);
+	try{
+        	command_dispatcher.dispatchCommand(command);
+	}
+	catch(std::runtime_error &rte){
+		cout << rte.what() << endl;
+	}
     }
 
     std::cout << "COMMAND DISPATCHER: ENDED" << std::endl;
