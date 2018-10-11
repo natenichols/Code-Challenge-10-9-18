@@ -33,28 +33,18 @@ bool g_done = false;
 // TEST COMMANDS
 //
 auto help_command = R"(
- {
-  "command":"help",
-  "payload": {
-    "usage":"Enter json command in 'command':'<command>','payload': { // json payload of arguments }",
-  }
- }
+ {"command":"help","payload": {"usage":"Enter json command in 'command':'<command>','payload': { // json payload of arguments }"}}
 )";
 
 auto exit_command = R"(
- {
-  "command":"exit",
-  "payload": {
-     "reason":"Exiting program on user request."
-  }
- }
+ {"command":"exit","payload": {"reason":"Exiting program on user request."}}
 )";
 
 class Controller {
 public:
     bool help(rapidjson::Value &payload)
     {
-        cout << "Controller::help: command: ";
+        cout << "Controller::help: command: \n";
 
         cout << payload["usage"].GetString() << endl;
 
@@ -65,7 +55,7 @@ public:
     {
         cout << "Controller::exit: command: \n";
 
-        g_done = false;
+        g_done = true;
 
 	cout << payload["reason"].GetString() << endl;
 
@@ -113,7 +103,9 @@ public:
 	if(doc["command"].GetString() ==string("exit")){
 		bullshit.exit(doc["payload"]);
 	}
-	
+	else if(doc["command"].GetString() ==string("help")){
+		bullshit.help(doc["payload"]);
+	}
 
         return true;
     }
