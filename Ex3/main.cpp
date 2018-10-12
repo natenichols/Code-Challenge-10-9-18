@@ -16,6 +16,7 @@ void doWork(std::string msg)
 
 	
 	for(;;){
+		//waits for main/threads to signal
 		_cond.wait(lock);
 
 		
