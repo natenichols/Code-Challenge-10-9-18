@@ -8,46 +8,27 @@
 
 std::mutex _mu;
 std::condition_variable _cond;
-bool ready = false;
-bool waiting = false;
-
 
 void doWork(std::string msg)
 {
-
-	
 	std::unique_lock<std::mutex> lock(_mu);
-
-	//Threads block on condition_signal(2)
-	_cond.wait(lock, []{return ready;});
-
-
-	std::cout << msg << ": signaled, doing work" << std::endl;
-
-	//work
-
-	std::cout << msg << ": work is done, signaling next" << std::endl;
-	
-	
-	//notify the next thread
-	_cond.notify_one();
+	std::cout << msg << ": started, is waiting" << std::endl;
 
 	
-	
-}
-void loopWork(std::string msg)
-{
-	std::unique_lock<std::mutex> lock(_mu);
-	
-	//Will block on the condition variable in loop
-	std::cout << msg << ": has started, is waiting" << std::endl;
-	
-	lock.unlock();
+	for(;;){
+		_cond.wait(lock);
 
-	while(true){
-		//Implemented to let each thead reach the condition variable before it is notified again
-		usleep(500);
-		doWork(msg);
+		
+		std::cout << msg << ": signaled, doing work" << std::endl;
+
+		//work
+
+		std::cout << msg << ": work is done, signaling next" << std::endl;
+		
+		
+		//notify the next thread
+		_cond.notify_one();
+		
 	}
 }
 int main()
@@ -57,23 +38,23 @@ int main()
 
 	
 	//Start all threads (1) (usleep makes sure each string has time to get to the condition variable)
-	std::thread thread1(loopWork, std::string("Thread 1"));
+	std::thread thread1(doWork, std::string("Thread 1"));
 	usleep(1);
-	std::thread thread2(loopWork, std::string("Thread 2"));
+	std::thread thread2(doWork, std::string("Thread 2"));
 	usleep(1);
-	std::thread thread3(loopWork, std::string("Thread 3"));
+	std::thread thread3(doWork, std::string("Thread 3"));
 	usleep(1);
 	
 	
 	{
 		std::unique_lock<std::mutex> lock(_mu);
-		ready = true;
 		std::cout << "main: signaling thread 1" << std::endl; 
 	}
 
 	//main signals waiting thread
 	_cond.notify_one();
 
+	//threads join back up (but will never happen because threads loop) Note: prevents main thread from ending and throwing error.
 	thread1.join();
 	thread2.join();
 	thread3.join();
