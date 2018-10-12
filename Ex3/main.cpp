@@ -11,11 +11,12 @@ std::condition_variable _cond;
 
 void doWork(std::string msg)
 {
-	std::unique_lock<std::mutex> lock(_mu);
+	
 	std::cout << msg << ": started, is waiting" << std::endl;
 
 	
 	for(;;){
+		std::unique_lock<std::mutex> lock(_mu);
 		//waits for main/threads to signal
 		_cond.wait(lock);
 
@@ -29,6 +30,7 @@ void doWork(std::string msg)
 		
 		//notify the next thread
 		_cond.notify_one();
+		sleep(1);
 		
 	}
 }
