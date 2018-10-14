@@ -10,5 +10,5 @@ link_directories(../ ./)
 set(CMAKE_CXX_FLAGS "-Wall -std=c99")
 
 # create executable
-add_executable (test test-memory-pool.c memory_pool.c)
-set_property(TARGET test PROPERTY C_STANDARD 99)
+add_executable (tests test-memory-pool.c memory_pool.c)
+set_property(TARGET tests PROPERTY C_STANDARD 99)

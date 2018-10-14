@@ -19,7 +19,6 @@ void doWork(std::string msg)
 		std::unique_lock<std::mutex> lock(_mu);
 		//waits for main/threads to signal
 		_cond.wait(lock);
-
 		
 		std::cout << msg << ": signaled, doing work" << std::endl;
 
@@ -30,8 +29,6 @@ void doWork(std::string msg)
 		
 		//notify the next thread
 		_cond.notify_one();
-		sleep(1);
-		
 	}
 }
 int main()

@@ -9,6 +9,7 @@
 #include <memory.h>
 #include <memory_pool.h>
 
+
 // PRIVATE: declared inside *.c file
 typedef struct memory_pool_block_header
 {
@@ -64,16 +65,38 @@ memory_pool_t * memory_pool_init(size_t count, size_t block_size)
     mp->available = 0;
     mp->count = 0;
 
+    void* next_block;
     for( n = 0; n < count; ++n ) {
         // allocate data block
         //   data block size + header siz
         //
         size_t total_size = block_size + sizeof(memory_pool_block_header_t);
+	
+	void * block = malloc(total_size);
 
-        // move to end of data block to create header
+	// move to end of data block to create header
         //
+	void * headerlocation = block + block_size;
+	
+	memory_pool_block_header_t * header = (memory_pool_block_header_t *) headerlocation;
+	
+	
+	header->size = block_size;
+	header->next = next_block;
+	header->inuse = true;
+	next_block = header;
 
-        // add to stack (just a simple stack)
+	// add to stack (just a simple stack)
+	if(n == 0){
+		header->next = NULL;
+	}
+	if(n == count - 1){
+		mp->pool =  (memory_pool_block_header_t*) block;
+	}
+       
+	
+
+        
 
         printf("MEMORY_POOL: i=%d, data=%p, header=%p, block_size=%zu, next=%p\n",
                n, block, header, header->size, header->next);
@@ -81,6 +104,7 @@ memory_pool_t * memory_pool_init(size_t count, size_t block_size)
 
     printf("memory_pool_init(mp=%p, count=%zu, block_size=%zu)\n", mp, count, block_size);
 
+    
     mp->count = count;
     mp->block_size = block_size;
     mp->available = count;
@@ -88,34 +112,49 @@ memory_pool_t * memory_pool_init(size_t count, size_t block_size)
     return n == count ? mp : NULL;
 }
 
-bool memory_pool_destroy(memory_pool_t *mp)
+bool memory_pool_destroy(memory_pool_t * mp)
 {
 
     printf("memory_pool_destroy(mp = %p, count=%zu, block_size=%zu)\n", mp, mp->count, mp->block_size);
 
+
     for(int n = 0; n < mp->count; ++n ) {
-        // free all data blocks from pool
+	if(n != mp->count -1){
+		memory_pool_block_header_t * temp = MEMORY_POOL_DBTOH((void*)mp->pool, mp->block_size)->next;
+		free((void*)mp->pool);
+		mp->pool = (memory_pool_block_header_t*) MEMORY_POOL_HTODB(temp, mp->block_size);	
+		
+	}
+	else{
+		free((void*)mp->pool);
+	}
     }
+   
 
     // free memory pool itself
+
+    free(mp);
 
     return true;
 }
 
 void * memory_pool_acquire(memory_pool_t * mp)
 {
-    // pop stack
-
+    //pop stack
+    
+    
     // get data block from header
-    void * data = MEMORY_POOL_HTODB(header, mp->block_size);
+    //void * data = MEMORY_POOL_HTODB(header, mp->block_size);
 
-    printf("memory_pool_acquire: mp=%p, data=%p\n", mp, data);
-    return data;  // return to caller
+    //printf("memory_pool_acquire: mp=%p, data=%p\n", mp, data);
+    //return data;  // return to caller
 }
 
 bool memory_pool_release(memory_pool_t *mp, void * data)
 {
     // move to header inside memory block using MEMORY_POOL_DBTOH(data, mp->block_size);
+
+    memory_pool_block_header_t * header = MEMORY_POOL_DBTOH(data, mp->block_size);
 
     printf("memory_pool_release: data=%p, header=%p, block_size=%zu, next=%p\n",
            data, header, header->size, header->next);

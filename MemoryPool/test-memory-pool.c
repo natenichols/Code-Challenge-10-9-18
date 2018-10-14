@@ -55,7 +55,7 @@ int main (int argc, char *argv[])
         return 1;
     }
 
-    memory_pool_dump(mp1);
+  /*  memory_pool_dump(mp1);
     printf("available = %zu\n", memory_pool_available(mp1));
     void * data;
     data = memory_pool_acquire(mp1);
@@ -116,7 +116,7 @@ int main (int argc, char *argv[])
     memory_pool_release(mp1, d5);  // ERROR: double release
 
     memory_pool_dump(mp1); // verify all items have been returned
-
+*/
     memory_pool_destroy(mp1);
 
     printf("\nSTOP\n");

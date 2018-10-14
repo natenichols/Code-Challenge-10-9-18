@@ -1,0 +1,3 @@
+/home/n545n545/Code-Challenge-10-9-18/MemoryPool/CMakeFiles/rebuild_cache.dir
+/home/n545n545/Code-Challenge-10-9-18/MemoryPool/CMakeFiles/tests.dir
+/home/n545n545/Code-Challenge-10-9-18/MemoryPool/CMakeFiles/edit_cache.dir

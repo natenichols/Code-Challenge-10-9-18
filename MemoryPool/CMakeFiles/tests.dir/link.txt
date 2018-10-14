@@ -1,0 +1,1 @@
+/usr/bin/cc    CMakeFiles/tests.dir/test-memory-pool.c.o CMakeFiles/tests.dir/memory_pool.c.o  -o tests  -L/home/n545n545/Code-Challenge-10-9-18/MemoryPool/..  -L/home/n545n545/Code-Challenge-10-9-18/MemoryPool/. 
