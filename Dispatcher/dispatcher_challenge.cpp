@@ -60,6 +60,11 @@ public:
     {
         cout << "Controller::help: command: \n";
 
+	if(!payload.HasMember("usage"))
+		throw(std::runtime_error("INVALID PAYLOAD"));
+	if(payload["usage"].GetType()!=5)	
+		throw(std::runtime_error("INVALID TYPE"));
+
         cout << payload["usage"].GetString() << endl;
 
         return true;
@@ -68,6 +73,11 @@ public:
     bool exit(rapidjson::Value &payload)
     {
         cout << "Controller::exit: command: \n";
+
+	if(!payload.HasMember("reason"))
+		throw(std::runtime_error("INVALID PAYLOAD"));
+	if(payload["reason"].GetType()!=5)	
+		throw(std::runtime_error("INVALID TYPE"));
 
         g_done = true;
 
