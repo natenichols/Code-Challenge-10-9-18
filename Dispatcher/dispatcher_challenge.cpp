@@ -92,6 +92,11 @@ public:
     {
 	cout << "Controller::calcPower: command: \n";
 
+	if(!payload.HasMember("voltage")||!payload.HasMember("current"))
+		throw(std::runtime_error("INVALID PAYLOAD"));
+	if(payload["voltage"].GetType()!=6||payload["current"].GetType()!=6)	
+		throw(std::runtime_error("INVALID TYPE"));
+
 	int voltage = payload["voltage"].GetInt();
 	int current = payload["current"].GetInt();
 
@@ -105,7 +110,12 @@ public:
     bool logValue(rapidjson::Value &payload)
     {
 	cout << "Controller::logValue: command: \n";
-	
+		
+	if(!payload.HasMember("data"))
+		throw(std::runtime_error("INVALID PAYLOAD"));
+	if(payload["data"].GetType()!=4)	
+		throw(std::runtime_error("INVALID TYPE"));
+
 	ofstream outFile;
 	outFile.open("myData.csv", std::fstream::app);
 
