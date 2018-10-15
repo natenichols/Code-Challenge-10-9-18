@@ -55,7 +55,7 @@ int main (int argc, char *argv[])
         return 1;
     }
 
-  /*  memory_pool_dump(mp1);
+    memory_pool_dump(mp1);
     printf("available = %zu\n", memory_pool_available(mp1));
     void * data;
     data = memory_pool_acquire(mp1);
@@ -72,9 +72,11 @@ int main (int argc, char *argv[])
     memcpy(data, test_data, sizeof(test_data) );
     printf("data: '%s'\n", (char*)data);
 
-    memory_pool_dump(mp1);   // dump before
+    // dump before
+    memory_pool_dump(mp1); 
     memory_pool_release(mp1, data);
-    memory_pool_release(mp1, data);  // test double release
+    if(!memory_pool_release(mp1, data))	  // test double release
+	printf("memory_pool_release: double release failed\n");
     memory_pool_dump(mp1);   // dump after
 
     // test over acquire
@@ -113,10 +115,10 @@ int main (int argc, char *argv[])
     memory_pool_release(mp1, d3);
     memory_pool_release(mp1, d4);
     memory_pool_release(mp1, d5);
-    memory_pool_release(mp1, d5);  // ERROR: double release
-
+    if(!memory_pool_release(mp1, d5));  // ERROR: double release
+	printf("memory_pool_release: double release failed\n");
     memory_pool_dump(mp1); // verify all items have been returned
-*/
+
     memory_pool_destroy(mp1);
 
     printf("\nSTOP\n");

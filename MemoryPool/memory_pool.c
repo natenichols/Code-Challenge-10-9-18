@@ -83,7 +83,7 @@ memory_pool_t * memory_pool_init(size_t count, size_t block_size)
 	
 	header->size = block_size;
 	header->next = next_block;
-	header->inuse = true;
+	header->inuse = false;
 	next_block = header;
 
 	// add to stack (just a simple stack)
@@ -140,14 +140,30 @@ bool memory_pool_destroy(memory_pool_t * mp)
 
 void * memory_pool_acquire(memory_pool_t * mp)
 {
-    //pop stack
-    
-    
-    // get data block from header
-    //void * data = MEMORY_POOL_HTODB(header, mp->block_size);
+    if(mp->available == 0)
+	return NULL;
 
-    //printf("memory_pool_acquire: mp=%p, data=%p\n", mp, data);
+    //pop stack
+    memory_pool_block_header_t * header = MEMORY_POOL_DBTOH((void*)mp->pool, mp->block_size);
+
+    //get data block from header
+    void * data = (void *) header;
+    int i;
+    for(i = 0; i < mp->available-1; ++i){
+	header = header->next;
+    }
+
+    data = MEMORY_POOL_HTODB(header, mp->block_size);
+
     //return data;  // return to caller
+    if(i == mp->available-1){
+	mp->available--;
+	header->inuse = true;
+	return data;
+    }
+    else{
+	return NULL;
+    }
 }
 
 bool memory_pool_release(memory_pool_t *mp, void * data)
@@ -159,7 +175,11 @@ bool memory_pool_release(memory_pool_t *mp, void * data)
     printf("memory_pool_release: data=%p, header=%p, block_size=%zu, next=%p\n",
            data, header, header->size, header->next);
 
-    // push on stack
+    if(!header->inuse)
+	return false;	
+	
+    header->inuse = false;
+    mp->available ++;
     return true;
 }
 
@@ -178,14 +198,13 @@ void memory_pool_dump(memory_pool_t *mp)
         printf("ERROR: memory_pool_dump: memory pool invalid\n");
         return;
     }
-
     printf("memory_pool_dump(mp = %p, count=%zu, available=%zu, block_size=%zu)\n",
             mp, mp->count, mp->available, mp->block_size);
 
-    memory_pool_block_header_t * header = mp->pool;
+    memory_pool_block_header_t * header = MEMORY_POOL_DBTOH((void*)mp->pool, mp->block_size);
 
     for(int n = 0; n < mp->available; ++n ) {
-        void * data_block = MEMORY_POOL_HTODB(header, mp->block_size);
+        void * data_block = mp->pool;
         printf(" + block: i=%d, data=%p, header=%p, inuse=%s, block_size=%zu, next=%p\n",
                n, data_block, header, header->inuse ? "TRUE":"FALSE", header->size, header->next);
 
