@@ -77,9 +77,8 @@ memory_pool_t * memory_pool_init(size_t count, size_t block_size)
 
 	// move to end of data block to create header
         //
-	 void * headerlocation = block + block_size;
 	
-	memory_pool_block_header_t * header = (memory_pool_block_header_t *) headerlocation;
+	memory_pool_block_header_t * header = MEMORY_POOL_DBTOH(block, block_size);
 	
 	header->size = block_size;
 	header->next = next_block;
@@ -159,9 +158,21 @@ void * memory_pool_acquire(memory_pool_t * mp)
     //return data;  // return to caller
     if(header->inuse == false){
 	mp->available--;
+
+
+	//pool is equal to the next block in the stack
 	mp->pool = MEMORY_POOL_HTODB(header->next, mp->block_size);
+
+	//Adds header to the bottom of the stack (changes the next pointer of the current tail block)
 	mp->tail->next = header;
-	mp->tail = header->next;
+
+	//Points tail to new bottom of the stack (changes the tail pointer associated with pool)
+	mp->tail = header;
+
+	//Sets last blocks next pointer to null
+	mp->tail->next = NULL;
+
+
 	header->inuse = true;
 	return data;
     }
@@ -207,7 +218,7 @@ void memory_pool_dump(memory_pool_t *mp)
 
     memory_pool_block_header_t * header = MEMORY_POOL_DBTOH((void*)mp->pool, mp->block_size);
 
-    for(int n = 0; n < mp->available; ++n ) {
+    for(int n = 0; n < mp->count; ++n ) {
         void * data_block = MEMORY_POOL_HTODB(header,mp->block_size);
         printf(" + block: i=%d, data=%p, header=%p, inuse=%s, block_size=%zu, next=%p\n",
                n, data_block, header, header->inuse ? "TRUE":"FALSE", header->size, header->next);
