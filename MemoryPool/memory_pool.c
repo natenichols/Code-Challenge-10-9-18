@@ -72,38 +72,38 @@ memory_pool_t * memory_pool_init(size_t count, size_t block_size)
         // allocate data block
         //   data block size + header siz
         //
-        size_t total_size = block_size + sizeof(memory_pool_block_header_t);
-	
-	block = malloc(total_size);
+		size_t total_size = block_size + sizeof(memory_pool_block_header_t);
+		
+		block = malloc(total_size);
 
-	// move to end of data block to create header
-        //
-	
-	memory_pool_block_header_t * header = MEMORY_POOL_DBTOH(block, block_size);
-	
-	//update the information in the header.
-	header->size = block_size;
-	header->next = next_block;
-	header->inuse = false;
+		// move to end of data block to create header
+		//
+		
+		memory_pool_block_header_t * header = MEMORY_POOL_DBTOH(block, block_size);
+		
+		//update the information in the header.
+		header->size = block_size;
+		header->next = next_block;
+		header->inuse = false;
 
-	//keep track of which header each header->next should be pointing to
-	next_block = header;
+		//keep track of which header each header->next should be pointing to
+		next_block = header;
 
-	// add to stack (just a simple stack)
-	if(n == 0){
-		mp->tail = header;
-		header->next = NULL;
-	}
-	if(n == count - 1){
-		//mp->pool points to the top of the data block at the top of the stack
-		mp->pool =  (memory_pool_block_header_t*) block;
-	}
-    
-        
+		// add to stack (just a simple stack)
+		if(n == 0){
+			mp->tail = header;
+			header->next = NULL;
+		}
+		if(n == count - 1){
+			//mp->pool points to the top of the data block at the top of the stack
+			mp->pool =  (memory_pool_block_header_t*) block;
+		}
+		
+		   
 
-        printf("MEMORY_POOL: i=%d, data=%p, header=%p, block_size=%zu, next=%p\n",
-               n, block, header, header->size, header->next);
-	block += sizeof(memory_pool_block_header_t);
+		printf("MEMORY_POOL: i=%d, data=%p, header=%p, block_size=%zu, next=%p\n",
+		           n, block, header, header->size, header->next);
+		block += sizeof(memory_pool_block_header_t);
 
     }
 
@@ -124,18 +124,18 @@ bool memory_pool_destroy(memory_pool_t * mp)
 
     //!!!This code is ugly, come back to it.
     for(int n = 0; n < mp->count; ++n ) {
-	if(n != mp->count -1){
+		if(n != mp->count -1){
 
-		memory_pool_block_header_t * temp = MEMORY_POOL_DBTOH((void*)mp->pool, mp->block_size)->next;
+			memory_pool_block_header_t * temp = MEMORY_POOL_DBTOH((void*)mp->pool, mp->block_size)->next;
 
-		free((void*)mp->pool);
+			free((void*)mp->pool);
 
-		mp->pool = (memory_pool_block_header_t*) MEMORY_POOL_HTODB(temp, mp->block_size);	
-		
-	}
-	else{
-		free((void*)mp->pool);
-	}
+			mp->pool = (memory_pool_block_header_t*) MEMORY_POOL_HTODB(temp, mp->block_size);
+			
+		}
+		else{
+			free((void*)mp->pool);
+		}
     }
    
 
@@ -176,7 +176,7 @@ void * memory_pool_acquire(memory_pool_t * mp)
 		return data;
     }
     else{
-	return NULL;
+		return NULL;
     }
 }
 
@@ -189,24 +189,25 @@ bool memory_pool_release(memory_pool_t *mp, void * data)
            data, header, header->size, header->next);
 
     if(!header->inuse)
-	return false;	
+		return false;	
 
     if(mp->available == 0){
-	mp->pool = data;
-	mp->tail = header;
+		//adding the first data back
+		//points pool to the data
+		mp->pool = data;
+		//points tail to header
+		mp->tail = header;
     }
     else{
+		//Adds the header to the bottom of the stack (changes the next pointer of the current tail block)
+		mp->tail->next = header;
 
-     
-	//Adds the header to the bottom of the stack (changes the next pointer of the current tail block)
-	mp->tail->next = header;
+		//Points tail to new bottom of the stack (changes the tail pointer associated with pool)
+		mp->tail = header;
 
-	//Points tail to new bottom of the stack (changes the tail pointer associated with pool)
-	mp->tail = header;
-
-	//Sets last blocks next pointer to null
-	mp->tail->next = NULL;
-	
+		//Sets last blocks next pointer to null
+		mp->tail->next = NULL;
+		
     }
     header->inuse = false;
     mp->available ++;
