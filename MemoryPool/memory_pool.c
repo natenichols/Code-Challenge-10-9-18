@@ -160,24 +160,20 @@ void * memory_pool_acquire(memory_pool_t * mp)
    
     //return data;  // return to caller
     if(header->inuse == false){
-	mp->available--;
+		mp->available--;
+	
+		if(mp->available == 0){
+			mp->pool = NULL;
+			mp->tail = NULL;
+		}
+		else{
+			//pool is equal to the next block in the stack
+			mp->pool = MEMORY_POOL_HTODB(header->next, mp->block_size);
+		}
 
-
-	//pool is equal to the next block in the stack
-	mp->pool = MEMORY_POOL_HTODB(header->next, mp->block_size);
-
-	//Adds header to the bottom of the stack (changes the next pointer of the current tail block)
-	mp->tail->next = header;
-
-	//Points tail to new bottom of the stack (changes the tail pointer associated with pool)
-	mp->tail = header;
-
-	//Sets last blocks next pointer to null
-	mp->tail->next = NULL;
-
-
-	header->inuse = true;
-	return data;
+		
+		header->inuse = true;
+		return data;
     }
     else{
 	return NULL;
@@ -196,6 +192,22 @@ bool memory_pool_release(memory_pool_t *mp, void * data)
     if(!header->inuse)
 	return false;	
 
+	if(mp->available == 0){
+		mp->pool = data;
+		mp->tail = header;
+	}
+	else{
+
+	}
+	//Adds header to the bottom of the stack (changes the next pointer of the current tail block)
+	mp->tail->next = header;
+
+	//Points tail to new bottom of the stack (changes the tail pointer associated with pool)
+	mp->tail = header;
+
+	//Sets last blocks next pointer to null
+	mp->tail->next = NULL;
+	
 
     header->inuse = false;
     mp->available ++;
@@ -222,7 +234,7 @@ void memory_pool_dump(memory_pool_t *mp)
 
     memory_pool_block_header_t * header = MEMORY_POOL_DBTOH((void*)mp->pool, mp->block_size);
 
-    for(int n = 0; n < mp->count; ++n ) {
+    for(int n = 0; n < mp->available; ++n ) {
         void * data_block = MEMORY_POOL_HTODB(header,mp->block_size);
         printf(" + block: i=%d, data=%p, header=%p, inuse=%s, block_size=%zu, next=%p\n",
                n, data_block, header, header->inuse ? "TRUE":"FALSE", header->size, header->next);
