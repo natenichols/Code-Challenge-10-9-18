@@ -80,9 +80,12 @@ memory_pool_t * memory_pool_init(size_t count, size_t block_size)
 	
 	memory_pool_block_header_t * header = MEMORY_POOL_DBTOH(block, block_size);
 	
+	//update the information in the header.
 	header->size = block_size;
 	header->next = next_block;
 	header->inuse = false;
+
+	//keep track of which header each header->next should be pointing to
 	next_block = header;
 
 	// add to stack (just a simple stack)
@@ -91,6 +94,7 @@ memory_pool_t * memory_pool_init(size_t count, size_t block_size)
 		header->next = NULL;
 	}
 	if(n == count - 1){
+		//mp->pool points to the top of the data block at the top of the stack
 		mp->pool =  (memory_pool_block_header_t*) block;
 	}
        
@@ -119,11 +123,14 @@ bool memory_pool_destroy(memory_pool_t * mp)
 
     printf("memory_pool_destroy(mp = %p, count=%zu, block_size=%zu)\n", mp, mp->count, mp->block_size);
 
-
+    //!!!This code is ugly, come back to it.
     for(int n = 0; n < mp->count; ++n ) {
 	if(n != mp->count -1){
+
 		memory_pool_block_header_t * temp = MEMORY_POOL_DBTOH((void*)mp->pool, mp->block_size)->next;
+
 		free((void*)mp->pool);
+
 		mp->pool = (memory_pool_block_header_t*) MEMORY_POOL_HTODB(temp, mp->block_size);	
 		
 	}
@@ -134,7 +141,6 @@ bool memory_pool_destroy(memory_pool_t * mp)
    
 
     // free memory pool itself
-
     free(mp);
 
     return true;
@@ -142,6 +148,7 @@ bool memory_pool_destroy(memory_pool_t * mp)
 
 void * memory_pool_acquire(memory_pool_t * mp)
 {
+    //if there is not available memory, there is no memory to acquire. 
     if(mp->available == 0)
 	return NULL;
 
@@ -152,9 +159,6 @@ void * memory_pool_acquire(memory_pool_t * mp)
     //get data block from header
     void * data = mp->pool;
    
-    
-    
-
     //return data;  // return to caller
     if(header->inuse == false){
 	mp->available--;
@@ -184,7 +188,7 @@ void * memory_pool_acquire(memory_pool_t * mp)
 bool memory_pool_release(memory_pool_t *mp, void * data)
 {
     // move to header inside memory block using MEMORY_POOL_DBTOH(data, mp->block_size);
-
+    // !!!Have release put the block being release on the back of the stack
     memory_pool_block_header_t * header = MEMORY_POOL_DBTOH(data, mp->block_size);
 
     printf("memory_pool_release: data=%p, header=%p, block_size=%zu, next=%p\n",
