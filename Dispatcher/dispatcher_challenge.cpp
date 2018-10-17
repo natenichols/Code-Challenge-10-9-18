@@ -141,13 +141,12 @@ public:
 	
     }
 
-    // implement 2-3 more commands
+    // implemented 3 of my own commands;
 };
 
 // gimme ... this is actually tricky
-	// Note: Had to include functional library, because std::function takes a function as a type
-// Bonus Question: why did I type cast this?
-	//The bool isn't really a type cast its denoting the return type of the function which takes parameters(rapidjson::Value)
+	// Note: Had to include functional library, because std::function is essentially taking a function as a type
+// Bonus Question: why did I type cast this
 	//This is done because the methods being assigned to the Handler return bool values
 typedef std::function<bool(rapidjson::Value &)> CommandHandler;
 
@@ -209,6 +208,10 @@ private:
 
     // another gimme ...
     // Question: why delete these?
+
+	//Because the Command Dispatcher should not be able to be copied
+	//So the copy constuctor and the = operator are deleted.
+	//This would give a compilor error to anyone trying to call either
 
     // delete unused constructors
     CommandDispatcher (const CommandDispatcher&) = delete;
