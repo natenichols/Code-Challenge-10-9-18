@@ -27,6 +27,7 @@ struct memory_pool {
     size_t available;
 
     struct memory_pool_block_header * pool;
+    //points to the last block for to add to the back
     struct memory_pool_block_header * tail;
 };
 
@@ -97,9 +98,7 @@ memory_pool_t * memory_pool_init(size_t count, size_t block_size)
 		//mp->pool points to the top of the data block at the top of the stack
 		mp->pool =  (memory_pool_block_header_t*) block;
 	}
-       
-	
-
+    
         
 
         printf("MEMORY_POOL: i=%d, data=%p, header=%p, block_size=%zu, next=%p\n",
@@ -188,7 +187,7 @@ void * memory_pool_acquire(memory_pool_t * mp)
 bool memory_pool_release(memory_pool_t *mp, void * data)
 {
     // move to header inside memory block using MEMORY_POOL_DBTOH(data, mp->block_size);
-    // !!!Have release put the block being release on the back of the stack
+    // !!!Have release put the block being released at the top of the stack
     memory_pool_block_header_t * header = MEMORY_POOL_DBTOH(data, mp->block_size);
 
     printf("memory_pool_release: data=%p, header=%p, block_size=%zu, next=%p\n",
@@ -196,7 +195,8 @@ bool memory_pool_release(memory_pool_t *mp, void * data)
 
     if(!header->inuse)
 	return false;	
-	
+
+
     header->inuse = false;
     mp->available ++;
     return true;
