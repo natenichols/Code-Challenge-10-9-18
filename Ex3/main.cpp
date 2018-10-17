@@ -22,7 +22,7 @@ void doWork(std::string msg)
 		
 		std::cout << msg << ": signaled, doing work" << std::endl;
 
-		//work
+		sleep(1);
 
 		std::cout << msg << ": work is done, signaling next" << std::endl;
 		
@@ -39,11 +39,11 @@ int main()
 	
 	//Start all threads (1) (usleep makes sure each string has time to get to the condition variable)
 	std::thread thread1(doWork, std::string("Thread 1"));
-	usleep(1);
+	usleep(5);
 	std::thread thread2(doWork, std::string("Thread 2"));
-	usleep(1);
+	usleep(5);
 	std::thread thread3(doWork, std::string("Thread 3"));
-	usleep(1);
+	usleep(10);
 	
 	
 	{
