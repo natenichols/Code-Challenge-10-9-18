@@ -5,4 +5,4 @@ main.o: main.cpp lock_guard.h
 	g++ -g -std=c++11 -Wall -c -lpthread main.cpp 
 
 clean:
-	rm *.o Ex1
+	rm *.o Ex
