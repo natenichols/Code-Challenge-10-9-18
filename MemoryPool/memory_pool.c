@@ -122,14 +122,17 @@ bool memory_pool_destroy(memory_pool_t * mp)
 
     printf("memory_pool_destroy(mp = %p, count=%zu, block_size=%zu)\n", mp, mp->count, mp->block_size);
 
-    //!!!This code is ugly, come back to it.
+    //This code only works when every block has been released from the user
     for(int n = 0; n < mp->count; ++n ) {
 		if(n != mp->count -1){
 
+			//point to next block
 			memory_pool_block_header_t * temp = MEMORY_POOL_DBTOH((void*)mp->pool, mp->block_size)->next;
 
+			//free top block
 			free((void*)mp->pool);
 
+			//pool set to be the top of the next block
 			mp->pool = (memory_pool_block_header_t*) MEMORY_POOL_HTODB(temp, mp->block_size);
 			
 		}
@@ -190,6 +193,7 @@ bool memory_pool_release(memory_pool_t *mp, void * data)
     printf("memory_pool_release: data=%p, header=%p, block_size=%zu, next=%p\n",
            data, header, header->size, header->next);
 
+    //cannot release a header thats not being used
     if(!header->inuse)
 		return false;	
 
@@ -201,7 +205,7 @@ bool memory_pool_release(memory_pool_t *mp, void * data)
 		mp->tail = header;
     }
     else{
-		//Adds the header to the bottom of the stack (changes the next pointer of the current tail block)
+		//Adds the header to the back of the stack (changes the next pointer of the current tail block)
 		mp->tail->next = header;
 
 		//Points tail to new bottom of the stack (changes the tail pointer associated with pool)
