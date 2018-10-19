@@ -21,6 +21,9 @@ namespace myGuard{
 			//mutex is unlocked when lockguard leaves scope
 			m_mu.unlock();
 		}
+		void lock() { m_mu.lock(); }
+ 
+    		void unlock() { m_mu.unlock(); }
 		private:
 		T_Mutex& m_mu;
 
