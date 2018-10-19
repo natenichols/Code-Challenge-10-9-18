@@ -103,7 +103,7 @@ memory_pool_t * memory_pool_init(size_t count, size_t block_size)
 
 		printf("MEMORY_POOL: i=%d, data=%p, header=%p, block_size=%zu, next=%p\n",
 		           n, block, header, header->size, header->next);
-		block += sizeof(memory_pool_block_header_t);
+
 
     }
 
@@ -147,9 +147,9 @@ bool memory_pool_destroy(memory_pool_t * mp)
 
 void * memory_pool_acquire(memory_pool_t * mp)
 {
-    //if there is not available memory, there is no memory to acquire. 
+    //there is not available memory 
     if(mp->available == 0)
-	return NULL;
+		return NULL;
 
     //pop stack
     memory_pool_block_header_t * header = MEMORY_POOL_DBTOH((void*)mp->pool, mp->block_size);
@@ -158,11 +158,11 @@ void * memory_pool_acquire(memory_pool_t * mp)
     //get data block from header
     void * data = mp->pool;
    
-    //return data;  // return to caller
     if(header->inuse == false){
 		mp->available--;
 	
 		if(mp->available == 0){
+			//if this is the last aquired, pool and tail set to null
 			mp->pool = NULL;
 			mp->tail = NULL;
 		}
@@ -171,11 +171,13 @@ void * memory_pool_acquire(memory_pool_t * mp)
 			mp->pool = MEMORY_POOL_HTODB(header->next, mp->block_size);
 		}
 
-		
 		header->inuse = true;
+
+		//return to caller
 		return data;
     }
     else{
+		//cannot aquire memory because memory is in use
 		return NULL;
     }
 }
