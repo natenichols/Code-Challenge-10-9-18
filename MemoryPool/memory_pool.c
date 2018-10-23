@@ -26,6 +26,8 @@ struct memory_pool {
     size_t block_size;   // size of each block
     size_t available;
 
+    void ** shadow;
+    
     struct memory_pool_block_header * pool;
     //points to the last block for to add to the back
     struct memory_pool_block_header * tail;
@@ -67,6 +69,7 @@ memory_pool_t * memory_pool_init(size_t count, size_t block_size)
     mp->available = 0;
     mp->count = 0;
 
+    mp->shadow = malloc(5*sizeof(void*));
     void* next_block;
     for( n = 0; n < count; ++n ) {
         // allocate data block
@@ -75,6 +78,7 @@ memory_pool_t * memory_pool_init(size_t count, size_t block_size)
 		size_t total_size = block_size + sizeof(memory_pool_block_header_t);
 		
 		block = malloc(total_size);
+		mp->shadow[n] = block;
 
 		// move to end of data block to create header
 		//
@@ -99,7 +103,7 @@ memory_pool_t * memory_pool_init(size_t count, size_t block_size)
 			mp->pool =  (memory_pool_block_header_t*) block;
 		}
 		
-		   
+		
 
 		printf("MEMORY_POOL: i=%d, data=%p, header=%p, block_size=%zu, next=%p\n",
 		           n, block, header, header->size, header->next);
@@ -121,30 +125,16 @@ bool memory_pool_destroy(memory_pool_t * mp)
 {
 
     printf("memory_pool_destroy(mp = %p, count=%zu, block_size=%zu)\n", mp, mp->count, mp->block_size);
-
-    //This code only works when every block has been released from the user
-    for(int n = 0; n < mp->count; ++n ) {
-		if(n != mp->count -1){
-
-			//point to next block
-			memory_pool_block_header_t * temp = MEMORY_POOL_DBTOH((void*)mp->pool, mp->block_size)->next;
-
-			//free top block
-			free((void*)mp->pool);
-
-			//pool set to be the top of the next block
-			mp->pool = (memory_pool_block_header_t*) MEMORY_POOL_HTODB(temp, mp->block_size);
-			
-		}
-		else{
-			free((void*)mp->pool);
-		}
-    }
    
+    for(int x = 0; x< mp->count; x ++){
+	free(mp->shadow[x]);
+    }
 
+    //free shadow 
+    free(mp->shadow);
     // free memory pool itself
     free(mp);
-
+    
     return true;
 }
 
